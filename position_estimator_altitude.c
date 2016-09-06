@@ -34,51 +34,55 @@
 
 
 struct selfState_s {
-  float estimatedZ; // The current Z estimate, has same offset as asl
-  float velocityZ; // Vertical speed (world frame) integrated from vertical acceleration (m/s)
-  float estAlpha;
-  float velocityFactor;
-  float vAccDeadband; // Vertical acceleration deadband
-  float velZAlpha;   // Blending factor to avoid vertical speed to accumulate error
+	float estimatedZ; // The current Z estimate, has same offset as asl
+	float velocityZ; // Vertical speed (world frame) integrated from vertical acceleration (m/s)
+	float estAlpha;
+	float velocityFactor;
+	float vAccDeadband; // Vertical acceleration deadband
+	float velZAlpha;   // Blending factor to avoid vertical speed to accumulate error
 };
 
 static struct selfState_s state = {
-  .estimatedZ = 0.0,
-  .velocityZ = 0.0,
-  .estAlpha = 0.99,
-  .velocityFactor = 1.0,
-  .vAccDeadband = 0.04,
-  .velZAlpha = 0.995,
+	.estimatedZ = 0.0,
+	.velocityZ = 0.0,
+	.estAlpha = 0.99,
+	.velocityFactor = 1.0,
+	.vAccDeadband = 0.04,
+	.velZAlpha = 0.995,
 };
 
 static void positionEstimateInternal(state_t* estimate, float asl, float dt, struct selfState_s* state);
 static void positionUpdateVelocityInternal(float accWZ, float dt, struct selfState_s* state);
 
-void positionEstimate(state_t* estimate, float asl, float dt) {
-  positionEstimateInternal(estimate, asl, dt, &state);
+void positionEstimate(state_t* estimate, float asl, float dt)
+{
+	positionEstimateInternal(estimate, asl, dt, &state);
 }
 
-void positionUpdateVelocity(float accWZ, float dt) {
-  positionUpdateVelocityInternal(accWZ, dt, &state);
+void positionUpdateVelocity(float accWZ, float dt)
+{
+	positionUpdateVelocityInternal(accWZ, dt, &state);
 }
 
-static void positionEstimateInternal(state_t* estimate, float asl, float dt, struct selfState_s* state) {
-  state->estimatedZ = state->estAlpha * state->estimatedZ +
-                     (1.0 - state->estAlpha) * asl +
-                     state->velocityFactor * state->velocityZ * dt;
-
-  estimate->position.x = 0.0;
-  estimate->position.y = 0.0;
-  estimate->position.z = state->estimatedZ;
+static void positionEstimateInternal(state_t* estimate, float asl, float dt, struct selfState_s* state)
+{
+	state->estimatedZ = state->estAlpha * state->estimatedZ +
+	                    (1.0 - state->estAlpha) * asl +
+	                    state->velocityFactor * state->velocityZ * dt;
+	estimate->position.x = 0.0;
+	estimate->position.y = 0.0;
+	estimate->position.z = state->estimatedZ;
 }
-float GetEstimatedPositionAsFunction ();
-float GetEstimatedPositionAsFunction (struct selfState_s* state) {
+float GetEstimatedPositionAsFunction();
+float GetEstimatedPositionAsFunction(struct selfState_s* state)
+{
 	return state->estimatedZ;
 }
 
-static void positionUpdateVelocityInternal(float accWZ, float dt, struct selfState_s* state) {
-  state->velocityZ += deadband(accWZ, state->vAccDeadband) * dt * G;
-  state->velocityZ *= state->velZAlpha;
+static void positionUpdateVelocityInternal(float accWZ, float dt, struct selfState_s* state)
+{
+	state->velocityZ += deadband(accWZ, state->vAccDeadband) * dt * G;
+	state->velocityZ *= state->velZAlpha;
 }
 
 LOG_GROUP_START(posEstimatorAlt)

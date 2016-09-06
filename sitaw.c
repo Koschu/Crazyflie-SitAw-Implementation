@@ -113,29 +113,25 @@ PARAM_GROUP_STOP(sitAw)
  */
 void sitAwFFInit(void)
 {
-  triggerInit(&sitAwFFAccWZ, triggerFuncIsLE, SITAW_FF_THRESHOLD, SITAW_FF_TRIGGER_COUNT);
-  triggerActivate(&sitAwFFAccWZ, true);
+	triggerInit(&sitAwFFAccWZ, triggerFuncIsLE, SITAW_FF_THRESHOLD, SITAW_FF_TRIGGER_COUNT);
+	triggerActivate(&sitAwFFAccWZ, true);
 }
 
 
 static void sitAwPostStateUpdateCallOut(const sensorData_t *sensorData,
                                         const state_t *state)
 {
-  /* Code that shall run AFTER each attitude update, should be placed here. */
-
+	/* Code that shall run AFTER each attitude update, should be placed here. */
 #if defined(SITAW_ENABLED)
-  float accMAG = (sensorData->acc.x*sensorData->acc.x) +
-                 (sensorData->acc.y*sensorData->acc.y) +
-                 (sensorData->acc.z*sensorData->acc.z);
-
-  /* Test values for Free Fall detection. */
-  sitAwFFTest(state->acc.z, accMAG);
-
-  /* Test values for Tumbled detection. */
-  sitAwTuTest(state->attitude.roll, state->attitude.pitch);
-
-  /* Test values for At Rest detection. */
-  sitAwARTest(sensorData->acc.x, sensorData->acc.y, sensorData->acc.z);
+	float accMAG = (sensorData->acc.x * sensorData->acc.x) +
+	               (sensorData->acc.y * sensorData->acc.y) +
+	               (sensorData->acc.z * sensorData->acc.z);
+	/* Test values for Free Fall detection. */
+	sitAwFFTest(state->acc.z, accMAG);
+	/* Test values for Tumbled detection. */
+	sitAwTuTest(state->attitude.roll, state->attitude.pitch);
+	/* Test values for At Rest detection. */
+	sitAwARTest(sensorData->acc.x, sensorData->acc.y, sensorData->acc.z);
 #endif
 }
 #if defined(SITAW_ENABLED)
@@ -144,50 +140,43 @@ float GetEstimatedPositionAsFunction(); //created in and imported from position_
 #endif
 static void sitAwPreThrustUpdateCallOut(setpoint_t *setpoint)
 {
-  /* Code that shall run BEFORE each thrust distribution update, should be placed here. */
-
+	/* Code that shall run BEFORE each thrust distribution update, should be placed here. */
 #if defined(SITAW_ENABLED)
 	High = GetEstimatedPositionAsFunction(); //High = Altitude
 	uint32_t actualTick = xTaskGetTickCount();
-	if ((actualTick == 1)){
+	if ((actualTick == 1)) {
 		// actualTick is 1 when the CF connects to the Client at the first time. Then ss.start_altitude is set as the groundlevel and is used for comparison later in the code.
 		ss.start_altitude = High;
 	}
-      if(sitAwTuDetected()) {
-        // Kill the thrust to the motors if a Tumbled situation is detected.
-        setpoint->thrust = 0;
-      }
-
-
-      if(sitAwFFDetected() && !sitAwTuDetected()) {
-    	  // as soon as a FreeFall is detected, the timestamp will be created. actualTick-timestamp = increasing value = timer.
-        countdown.timestamp = actualTick;
-      }
-
-      if (((actualTick - countdown.timestamp) < ((unsigned int)((2000)*(( ( TickType_t ) 1000 )/1000.0)))) && !((High - ss.start_altitude) < 0.2)) {
-    	  setpoint->mode.z = modeVelocity; //while timer is on and CF is not near ground, the althold mode is activated
-    	  setpoint->velocity.z = 0;		   //Velocity of the z-axis is set to 0 first, but..
-      if ((0.2 < (ss.start_altitude - High)) && ((ss.start_altitude- High) < 1)) {
-    	  setpoint->velocity.z = -0.2;     //.. then depends on level above groundlevel..
-      }
-      if ((1 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 2)) {
-         	  setpoint->velocity.z = -0.3; // .. and the higher the level..
-           }
-      if ((2 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 3)) {
-         	  setpoint->velocity.z = -0.4; // .. the higher the downward-speed.
-           }
-      if ((3 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 4)) {
-         	  setpoint->velocity.z = -0.5;
-           }
-      if (4 < (ss.start_altitude - High)) {
-         	  setpoint->velocity.z = -0.6;
-           }
-      }
-      if ((ss.start_altitude - High) < 0.2) {
-    	  // if CF is near Ground, the timer will be deactivated
-    	  countdown.timestamp = 0;
-      }
-
+	if (sitAwTuDetected()) {
+		// Kill the thrust to the motors if a Tumbled situation is detected.
+		setpoint->thrust = 0;
+	}
+	if (sitAwFFDetected() && !sitAwTuDetected()) {
+		// as soon as a FreeFall is detected, the timestamp will be created. actualTick-timestamp = increasing value = timer.
+		countdown.timestamp = actualTick;
+	}
+	if (((actualTick - countdown.timestamp) < ((unsigned int)((2000) * (((TickType_t) 1000) / 1000.0)))) && !((High - ss.start_altitude) < 0.2)) {
+		setpoint->mode.z = modeVelocity; //while timer is on and CF is not near ground, the althold mode is activated
+		setpoint->velocity.z = 0;		   //Velocity of the z-axis is set to 0 first, but..
+		if ((0.2 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 1)) {
+			setpoint->velocity.z = -0.2;     //.. then depends on level above groundlevel..
+		}
+		if ((1 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 2)) {
+			setpoint->velocity.z = -0.3; // .. and the higher the level..
+		}
+		if ((2 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 3)) {
+			setpoint->velocity.z = -0.4; // .. the higher the downward-speed.
+		}
+		if ((3 < (ss.start_altitude - High)) && ((ss.start_altitude - High) < 4))
+			setpoint->velocity.z = -0.5;
+		if (4 < (ss.start_altitude - High))
+			setpoint->velocity.z = -0.6;
+	}
+	if ((ss.start_altitude - High) < 0.2) {
+		// if CF is near Ground, the timer will be deactivated
+		countdown.timestamp = 0;
+	}
 #endif
 }
 
@@ -198,10 +187,10 @@ static void sitAwPreThrustUpdateCallOut(setpoint_t *setpoint)
  * should update the setpoint accordig to the current state situation
  */
 void sitAwUpdateSetpoint(setpoint_t *setpoint, const sensorData_t *sensorData,
-                                               const state_t *state)
+                         const state_t *state)
 {
-  sitAwPostStateUpdateCallOut(sensorData, state);
-  sitAwPreThrustUpdateCallOut(setpoint);
+	sitAwPostStateUpdateCallOut(sensorData, state);
+	sitAwPreThrustUpdateCallOut(setpoint);
 }
 
 /**
@@ -227,18 +216,17 @@ void sitAwUpdateSetpoint(setpoint_t *setpoint, const sensorData_t *sensorData,
  */
 bool sitAwFFTest(float accWZ, float accMAG)
 {
-  /* Check that the total acceleration is close to zero. */
-  if(fabs(accMAG) > SITAW_FF_THRESHOLD) {
-    /* If the total acceleration deviates from 0, this is not a free fall situation. */
-    triggerReset(&sitAwFFAccWZ);
-    return false;
-  }
-
-  /**
-   * AccWZ approaches -1 in free fall. Check that the value stays within
-   * SITAW_FF_THRESHOLD of -1 for the triggerCount specified.
-   */
-  return(triggerTestValue(&sitAwFFAccWZ, fabs(accWZ + 1)));
+	/* Check that the total acceleration is close to zero. */
+	if (fabs(accMAG) > SITAW_FF_THRESHOLD) {
+		/* If the total acceleration deviates from 0, this is not a free fall situation. */
+		triggerReset(&sitAwFFAccWZ);
+		return false;
+	}
+	/**
+	 * AccWZ approaches -1 in free fall. Check that the value stays within
+	 * SITAW_FF_THRESHOLD of -1 for the triggerCount specified.
+	 */
+	return (triggerTestValue(&sitAwFFAccWZ, fabs(accWZ + 1)));
 }
 
 /**
@@ -248,7 +236,7 @@ bool sitAwFFTest(float accWZ, float accMAG)
  */
 bool sitAwFFDetected(void)
 {
-  return sitAwFFAccWZ.released;
+	return sitAwFFAccWZ.released;
 }
 
 /**
@@ -258,8 +246,8 @@ bool sitAwFFDetected(void)
  */
 void sitAwARInit(void)
 {
-  triggerInit(&sitAwARAccZ, triggerFuncIsLE, SITAW_AR_THRESHOLD, SITAW_AR_TRIGGER_COUNT);
-  triggerActivate(&sitAwARAccZ, true);
+	triggerInit(&sitAwARAccZ, triggerFuncIsLE, SITAW_AR_THRESHOLD, SITAW_AR_TRIGGER_COUNT);
+	triggerActivate(&sitAwARAccZ, true);
 }
 
 /**
@@ -283,21 +271,20 @@ void sitAwARInit(void)
  */
 bool sitAwARTest(float accX, float accY, float accZ)
 {
-  /* Check that there are no horizontal accelerations. At rest, these are 0. */
-  if((fabs(accX) > SITAW_AR_THRESHOLD) || (fabs(accY) > SITAW_AR_THRESHOLD)) {
-    /* If the X or Y accelerations are different than 0, the crazyflie is not at rest. */
-    triggerReset(&sitAwARAccZ);
-    return(false);
-  }
-
-  /**
-   * If the test above indicates that there are no horizontal movements, test the
-   * vertical acceleration value against the trigger.
-   *
-   * The vertical acceleration must be close to 1, but is allowed to oscillate slightly
-   * around 1. Testing that the deviation from 1 stays within SITAW_AR_THRESHOLD.
-   */
-  return(triggerTestValue(&sitAwARAccZ, fabs(accZ - 1)));
+	/* Check that there are no horizontal accelerations. At rest, these are 0. */
+	if ((fabs(accX) > SITAW_AR_THRESHOLD) || (fabs(accY) > SITAW_AR_THRESHOLD)) {
+		/* If the X or Y accelerations are different than 0, the crazyflie is not at rest. */
+		triggerReset(&sitAwARAccZ);
+		return (false);
+	}
+	/**
+	 * If the test above indicates that there are no horizontal movements, test the
+	 * vertical acceleration value against the trigger.
+	 *
+	 * The vertical acceleration must be close to 1, but is allowed to oscillate slightly
+	 * around 1. Testing that the deviation from 1 stays within SITAW_AR_THRESHOLD.
+	 */
+	return (triggerTestValue(&sitAwARAccZ, fabs(accZ - 1)));
 }
 
 /**
@@ -307,7 +294,7 @@ bool sitAwARTest(float accX, float accY, float accZ)
  */
 bool sitAwARDetected(void)
 {
-  return sitAwARAccZ.released;
+	return sitAwARAccZ.released;
 }
 
 /**
@@ -317,8 +304,8 @@ bool sitAwARDetected(void)
  */
 void sitAwTuInit(void)
 {
-  triggerInit(&sitAwTuAngle, triggerFuncIsGE, SITAW_TU_THRESHOLD, SITAW_TU_TRIGGER_COUNT);
-  triggerActivate(&sitAwTuAngle, true);
+	triggerInit(&sitAwTuAngle, triggerFuncIsGE, SITAW_TU_THRESHOLD, SITAW_TU_TRIGGER_COUNT);
+	triggerActivate(&sitAwTuAngle, true);
 }
 
 /**
@@ -343,16 +330,15 @@ void sitAwTuInit(void)
  */
 bool sitAwTuTest(float eulerRollActual, float eulerPitchActual)
 {
-  /*
-   * It is sufficient to use a single trigger object, we simply pass the
-   * greatest of the roll and pitch absolute values to the trigger object
-   * at any given time.
-   */
-  float fAbsRoll  = fabs(eulerRollActual);
-  float fAbsPitch = fabs(eulerPitchActual);
-
-  /* Only the roll value will report if the crazyflie is turning upside down. */
-  return(triggerTestValue(&sitAwTuAngle, fAbsRoll >= fAbsPitch ? fAbsRoll : fAbsPitch));
+	/*
+	 * It is sufficient to use a single trigger object, we simply pass the
+	 * greatest of the roll and pitch absolute values to the trigger object
+	 * at any given time.
+	 */
+	float fAbsRoll  = fabs(eulerRollActual);
+	float fAbsPitch = fabs(eulerPitchActual);
+	/* Only the roll value will report if the crazyflie is turning upside down. */
+	return (triggerTestValue(&sitAwTuAngle, fAbsRoll >= fAbsPitch ? fAbsRoll : fAbsPitch));
 }
 
 /**
@@ -362,7 +348,7 @@ bool sitAwTuTest(float eulerRollActual, float eulerPitchActual)
  */
 bool sitAwTuDetected(void)
 {
-  return sitAwTuAngle.released;
+	return sitAwTuAngle.released;
 }
 
 /**
@@ -370,7 +356,7 @@ bool sitAwTuDetected(void)
  */
 void sitAwInit(void)
 {
-  sitAwFFInit();
-  sitAwARInit();
-  sitAwTuInit();
+	sitAwFFInit();
+	sitAwARInit();
+	sitAwTuInit();
 }
