@@ -40,7 +40,7 @@ bool sitAwTuTest(float eulerRollActual, float eulerPitchActual);
 bool sitAwTuDetected(void);
 void sitAwInit(void);
 void sitAwUpdateSetpoint(setpoint_t *setpoint, const sensorData_t *sensorData,
-                                               const state_t *state);
+                         const state_t *state);
 
 /* Enable the situation awareness framework. */
 //#define SITAW_ENABLED
@@ -52,12 +52,12 @@ typedef float estimatedZ;
 typedef struct state_sitaw {
 	altitude_s start_altitude; //Altitude when connecting with the FreeRTOS
 
-	}state_s;
+} state_s;
 
 
 typedef struct Countdown {
 	uint32_t timestamp; //Timestamp for Thrusttimer
-}Countdown;
+} Countdown;
 
 #define Timer_ticks 300 //defines the tick interval the Timer (Countdown)
 #endif
