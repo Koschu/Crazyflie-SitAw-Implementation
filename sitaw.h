@@ -43,7 +43,7 @@ void sitAwUpdateSetpoint(setpoint_t *setpoint, const sensorData_t *sensorData,
                                                const state_t *state);
 
 /* Enable the situation awareness framework. */
-#define SITAW_ENABLED
+//#define SITAW_ENABLED
 
 #if defined(SITAW_ENABLED)
 int High;
