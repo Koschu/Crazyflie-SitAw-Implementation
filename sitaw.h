@@ -44,7 +44,8 @@ void sitAwUpdateSetpoint(setpoint_t *setpoint, const sensorData_t *sensorData,
 
 /* Enable the situation awareness framework. */
 //#define SITAW_ENABLED
-/*
+
+#if defined (SITAW_ENABLED)
 float High;
 typedef float altitude_s;
 typedef float estimatedZ;
@@ -59,7 +60,8 @@ typedef struct Countdown {
 }Countdown;
 
 #define Timer_ticks 300 //defines the tick interval the Timer (Countdown)
-*/
+#endif
+
 /* Configuration options for the 'Free Fall' detection. */
 #define SITAW_FF_THRESHOLD 0.1     /* The default tolerance for AccWZ deviations from -1, indicating Free Fall. */
 #define SITAW_FF_TRIGGER_COUNT 15  /* The number of consecutive tests for Free Fall to be detected. Configured for 250Hz testing. */
