@@ -1,4 +1,4 @@
 #C Crazyflie-SitAw-Implementation
 
-These file include the SitAw-Function, but as it is not functionally yet, the important lines are deactivated by "//"
-To activate the function, remove the double dashes in sitaw.h in line 46
+These file include the SitAw-Function, which is functional now! The important lines can be deactivated by "//"
+To deactivate the function, put the double dashes in sitaw.h in line 46
